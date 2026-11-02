@@ -12,7 +12,15 @@ class ContenuController extends Controller
     public function index()
     {
         //
-        return 'Liste des contenus multimédias';
+        $contenus = [
+            (object) [ 'titre' => 'Court-métrage documentaire',
+                       'description' => 'Un aperçu de la vie urbaine.'
+            ],
+            (object) [  'titre' => 'Podcast technologie',
+                        'description' => 'Actualités du développement web.'
+            ],
+        ];
+        return view('contenus.index', ['contenus' => $contenus]);
     }
 
     /**
