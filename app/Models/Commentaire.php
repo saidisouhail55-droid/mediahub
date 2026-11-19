@@ -21,8 +21,13 @@ class Commentaire extends Model
         return $this->belongsTo(Publication::class, 'publication_id');
     }
 
+    public function auteur(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->auteur();
     }
 }

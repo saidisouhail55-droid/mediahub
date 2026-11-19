@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Publication;
 use Illuminate\Http\Request;
 
 class ContenuController extends Controller
@@ -11,16 +12,15 @@ class ContenuController extends Controller
      */
     public function index()
     {
-        //
-        $contenus = [
-            (object) [ 'titre' => 'Court-métrage documentaire',
-                       'description' => 'Un aperçu de la vie urbaine.'
-            ],
-            (object) [  'titre' => 'Podcast technologie',
-                        'description' => 'Actualités du développement web.'
-            ],
-        ];
-        return view('contenus.index', ['contenus' => $contenus]);
+        $publications = Publication::with(['categorie', 'auteur'])
+            ->withCount('commentaires')
+            ->latest()
+            ->paginate(9);
+
+        return view('contenus.index', [
+            'publications' => $publications,
+            'contenus' => $publications,
+        ]);
     }
 
     /**
@@ -42,11 +42,14 @@ class ContenuController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Publication $contenu)
     {
-        //
-        dd($id);
-        return 'Détail du contenu numéro ' . $id;
+        $contenu->load(['categorie', 'auteur', 'commentaires.auteur', 'tags']);
+
+        return view('contenus.show', [
+            'publication' => $contenu,
+            'contenu' => $contenu,
+        ]);
     }
 
     /**
