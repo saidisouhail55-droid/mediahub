@@ -37,8 +37,9 @@
             </div>
         @endif
 
-        <div class="publication-corps">
-            {!! nl2br(e($publication->contenu)) !!}
+        {{-- Affichage 100% sécurisé avec double accolades {{ }} contre les failles XSS --}}
+        <div class="publication-corps" style="white-space: pre-line;">
+            {{ $publication->contenu }}
         </div>
 
         <p style="margin-top: 25px;">

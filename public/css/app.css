@@ -218,6 +218,7 @@ h3 {
     font-size: 1rem;
     color: #1f2937;
     background-color: #ffffff;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .champ input[type="text"]:focus,
@@ -226,6 +227,39 @@ h3 {
     outline: none;
     border-color: #2563eb;
     box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+}
+
+/* Validation : styles d'erreurs */
+.champ-erreur {
+    border-color: #dc2626 !important;
+    background-color: #fef2f2 !important;
+}
+
+.champ-erreur:focus {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220,38,38,0.15) !important;
+}
+
+.erreur-champ {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-top: 0.35rem;
+    display: block;
+    font-weight: 500;
+}
+
+.alertes-erreurs {
+    background-color: #fee2e2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+    padding: 1rem 1.25rem;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+}
+
+.alertes-erreurs ul {
+    margin-left: 1.5rem;
+    margin-top: 0.5rem;
 }
 
 .form-actions {

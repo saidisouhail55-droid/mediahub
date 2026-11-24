@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreCategorieRequest;
+use App\Http\Requests\UpdateCategorieRequest;
 use App\Models\Categorie;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class CategoriesController extends Controller
 {
@@ -29,17 +29,12 @@ class CategoriesController extends Controller
     }
 
     /**
-     * Enregistrer une nouvelle catégorie dans la base de données MySQL.
+     * Enregistrer une nouvelle catégorie validée dans MySQL.
+     * Utilisation de StoreCategorieRequest pour une validation stricte et sécurisée.
      */
-    public function store(Request $request)
+    public function store(StoreCategorieRequest $request)
     {
-        $nom = $request->input('nom');
-        $slug = $request->input('slug') ? Str::slug($request->input('slug')) : Str::slug($nom);
-
-        Categorie::create([
-            'nom' => $nom,
-            'slug' => $slug,
-        ]);
+        Categorie::create($request->validated());
 
         return redirect()
             ->route('categories.index')
@@ -65,17 +60,11 @@ class CategoriesController extends Controller
     }
 
     /**
-     * Mettre à jour une catégorie dans MySQL.
+     * Mettre à jour une catégorie avec validation via UpdateCategorieRequest.
      */
-    public function update(Request $request, Categorie $categorie)
+    public function update(UpdateCategorieRequest $request, Categorie $categorie)
     {
-        $nom = $request->input('nom');
-        $slug = $request->input('slug') ? Str::slug($request->input('slug')) : Str::slug($nom);
-
-        $categorie->update([
-            'nom' => $nom,
-            'slug' => $slug,
-        ]);
+        $categorie->update($request->validated());
 
         return redirect()
             ->route('categories.index')

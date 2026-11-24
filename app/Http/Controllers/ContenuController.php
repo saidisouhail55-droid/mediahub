@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StorePublicationRequest;
+use App\Http\Requests\UpdatePublicationRequest;
 use App\Models\Categorie;
 use App\Models\Publication;
 use App\Models\User;
-use Illuminate\Http\Request;
 
 class ContenuController extends Controller
 {
@@ -33,18 +34,18 @@ class ContenuController extends Controller
     }
 
     /**
-     * Enregistrer une nouvelle publication dans MySQL.
+     * Enregistrer une nouvelle publication validée dans MySQL.
+     * Protection contre le Mass Assignment : seules les données validées sont utilisées,
+     * et user_id est contrôlé strictement côté serveur.
      */
-    public function store(Request $request)
+    public function store(StorePublicationRequest $request)
     {
         // Récupérer un utilisateur existant dans la base MySQL (démonstration)
         $user = User::first();
         $userId = $user ? $user->id : 1;
 
         $publication = Publication::create([
-            'titre' => $request->input('titre'),
-            'contenu' => $request->input('contenu'),
-            'categorie_id' => $request->input('categorie_id'),
+            ...$request->validated(),
             'user_id' => $userId,
         ]);
 
@@ -74,11 +75,11 @@ class ContenuController extends Controller
     }
 
     /**
-     * Enregistrer les modifications apportées à une publication.
+     * Enregistrer les modifications validées avec UpdatePublicationRequest.
      */
-    public function update(Request $request, Publication $publication)
+    public function update(UpdatePublicationRequest $request, Publication $publication)
     {
-        $publication->update($request->only('titre', 'contenu', 'categorie_id'));
+        $publication->update($request->validated());
 
         return redirect()
             ->route('contenus.show', $publication)
