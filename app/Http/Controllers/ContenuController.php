@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\PublicationCreee;
 use App\Http\Requests\StorePublicationRequest;
 use App\Http\Requests\UpdatePublicationRequest;
 use App\Models\Categorie;
 use App\Models\Publication;
-use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class ContenuController extends Controller
@@ -89,6 +90,8 @@ class ContenuController extends Controller
 
         // === Enregistrement en base de données ===
         $publication = Publication::create($donnees);
+        Cache::forget('categories.liste');
+        event(new PublicationCreee($publication));
 
         return redirect()
             ->route('contenus.show', $publication)

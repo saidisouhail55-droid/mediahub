@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCategorieRequest;
 use App\Http\Requests\UpdateCategorieRequest;
 use App\Models\Categorie;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 
 class CategoriesController extends Controller
@@ -15,9 +17,20 @@ class CategoriesController extends Controller
      */
     public function index()
     {
-        $categories = Categorie::withCount('publications')
-            ->orderBy('nom')
-            ->paginate(5);
+        $categoriesListe = Cache::remember('categories.liste', 3600, function () {
+            return Categorie::withCount('publications')
+                ->orderBy('nom')
+                ->get();
+        });
+
+        $page = request()->integer('page', 1);
+        $categories = new LengthAwarePaginator(
+            $categoriesListe->forPage($page, 5)->values(),
+            $categoriesListe->count(),
+            5,
+            $page,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
 
         return view('categories.index', compact('categories'));
     }
@@ -42,6 +55,7 @@ class CategoriesController extends Controller
         Gate::authorize('gerer-categories');
 
         Categorie::create($request->validated());
+        Cache::forget('categories.liste');
 
         return redirect()
             ->route('categories.index')
@@ -79,6 +93,7 @@ class CategoriesController extends Controller
         Gate::authorize('gerer-categories');
 
         $categorie->update($request->validated());
+        Cache::forget('categories.liste');
 
         return redirect()
             ->route('categories.index')
@@ -101,6 +116,7 @@ class CategoriesController extends Controller
         }
 
         $categorie->delete();
+        Cache::forget('categories.liste');
 
         return redirect()
             ->route('categories.index')

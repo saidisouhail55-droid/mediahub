@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\PublicationCreee;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePublicationRequest;
 use App\Http\Requests\UpdatePublicationRequest;
@@ -9,6 +10,7 @@ use App\Http\Resources\PublicationResource;
 use App\Models\Publication;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class PublicationController extends Controller
@@ -46,6 +48,8 @@ class PublicationController extends Controller
         }
 
         $publication = Publication::create($donnees);
+        Cache::forget('categories.liste');
+        event(new PublicationCreee($publication));
 
         return (new PublicationResource($publication->load(['categorie', 'auteur'])))
             ->response()
