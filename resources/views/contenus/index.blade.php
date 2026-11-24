@@ -15,6 +15,25 @@
 
     @forelse ($publications as $publication)
         <x-carte titre="{{ $publication->titre }}">
+            {{-- ============================================================
+                 SEMAINE 9 — MINIATURE / IMAGE DE COUVERTURE DANS LA CARTE
+                 Affichée uniquement si une image existe pour cette publication.
+                 ============================================================ --}}
+            @if($publication->image)
+                <div style="margin-bottom: 10px;">
+                    <img src="{{ $publication->url_miniature }}"
+                        alt="{{ $publication->titre }}"
+                        style="width: 100%; max-height: 180px; object-fit: cover; border-radius: 4px;">
+                </div>
+            @endif
+
+            {{-- Badge du type de média si présent --}}
+            @if($publication->type_media === 'audio')
+                <span style="display:inline-block; background:#e3f2fd; color:#1565c0; padding:2px 8px; border-radius:12px; font-size:0.8rem; margin-bottom:8px;">🎵 Audio</span>
+            @elseif($publication->type_media === 'video')
+                <span style="display:inline-block; background:#fce4ec; color:#c62828; padding:2px 8px; border-radius:12px; font-size:0.8rem; margin-bottom:8px;">🎬 Vidéo</span>
+            @endif
+
             <p>{{ Str::limit($publication->contenu, 150) }}</p>
 
             <p class="meta">
@@ -35,7 +54,9 @@
                 @endcan
 
                 @can('delete', $publication)
-                    <form method="POST" action="{{ route('contenus.destroy', $publication) }}" style="display:inline-block;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette publication ?');">
+                    <form method="POST" action="{{ route('contenus.destroy', $publication) }}"
+                        style="display:inline-block;"
+                        onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette publication ?');">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-danger">Supprimer</button>

@@ -42,6 +42,13 @@ Route::resource('contenus', ContenuController::class)
     ->only(['index', 'show'])
     ->parameters(['contenus' => 'publication']);
 
+// Téléchargement sécurisé d'un document privé (semaine 9)
+// Accessible uniquement à l'auteur propriétaire ou à un administrateur
+Route::middleware('auth')->get(
+    '/contenus/{publication}/document',
+    [ContenuController::class, 'telechargerDocument']
+)->name('contenus.document');
+
 // Espace d'administration
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/tableau-de-bord', [AdminController::class, 'index'])->name('dashboard');
