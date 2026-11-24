@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCategorieRequest;
 use App\Http\Requests\UpdateCategorieRequest;
 use App\Models\Categorie;
+use Illuminate\Support\Facades\Gate;
 
 class CategoriesController extends Controller
 {
     /**
      * Afficher la liste des catégories avec pagination et nombre de publications associées.
+     * Accès : Public.
      */
     public function index()
     {
@@ -22,18 +24,23 @@ class CategoriesController extends Controller
 
     /**
      * Afficher le formulaire de création d'une nouvelle catégorie.
+     * Autorisation : Gate 'gerer-categories' (Administrateur uniquement).
      */
     public function create()
     {
+        Gate::authorize('gerer-categories');
+
         return view('categories.create');
     }
 
     /**
      * Enregistrer une nouvelle catégorie validée dans MySQL.
-     * Utilisation de StoreCategorieRequest pour une validation stricte et sécurisée.
+     * Autorisation : Gate 'gerer-categories' (Administrateur uniquement).
      */
     public function store(StoreCategorieRequest $request)
     {
+        Gate::authorize('gerer-categories');
+
         Categorie::create($request->validated());
 
         return redirect()
@@ -43,6 +50,7 @@ class CategoriesController extends Controller
 
     /**
      * Afficher les détails d'une catégorie et ses publications associées.
+     * Accès : Public.
      */
     public function show(Categorie $categorie)
     {
@@ -53,17 +61,23 @@ class CategoriesController extends Controller
 
     /**
      * Afficher le formulaire de modification d'une catégorie existante.
+     * Autorisation : Gate 'gerer-categories' (Administrateur uniquement).
      */
     public function edit(Categorie $categorie)
     {
+        Gate::authorize('gerer-categories');
+
         return view('categories.edit', compact('categorie'));
     }
 
     /**
      * Mettre à jour une catégorie avec validation via UpdateCategorieRequest.
+     * Autorisation : Gate 'gerer-categories' (Administrateur uniquement).
      */
     public function update(UpdateCategorieRequest $request, Categorie $categorie)
     {
+        Gate::authorize('gerer-categories');
+
         $categorie->update($request->validated());
 
         return redirect()
@@ -73,9 +87,12 @@ class CategoriesController extends Controller
 
     /**
      * Supprimer une catégorie avec protection contre les contraintes d'intégrité référentielle.
+     * Autorisation : Gate 'gerer-categories' (Administrateur uniquement).
      */
     public function destroy(Categorie $categorie)
     {
+        Gate::authorize('gerer-categories');
+
         // Empêcher la suppression si des publications sont rattachées à la catégorie
         if ($categorie->publications()->count() > 0) {
             return redirect()

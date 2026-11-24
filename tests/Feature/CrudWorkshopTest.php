@@ -19,9 +19,10 @@ class CrudWorkshopTest extends TestCase
 
     public function test_categories_index_displays_categories_list(): void
     {
+        $admin = User::factory()->create(['role' => 'admin']);
         Category::factory()->create(['nom' => 'Musique', 'slug' => 'musique']);
 
-        $response = $this->get(route('categories.index'));
+        $response = $this->actingAs($admin)->get(route('categories.index'));
 
         $response->assertStatus(200);
         $response->assertSee('Musique');
@@ -30,7 +31,9 @@ class CrudWorkshopTest extends TestCase
 
     public function test_categories_create_form_is_accessible(): void
     {
-        $response = $this->get(route('categories.create'));
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $response = $this->actingAs($admin)->get(route('categories.create'));
 
         $response->assertStatus(200);
         $response->assertSee('Créer une catégorie');
@@ -39,7 +42,9 @@ class CrudWorkshopTest extends TestCase
 
     public function test_categories_store_creates_new_category_and_redirects(): void
     {
-        $response = $this->post(route('categories.store'), [
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $response = $this->actingAs($admin)->post(route('categories.store'), [
             'nom' => 'Documentaires',
             'slug' => 'documentaires',
         ]);
@@ -73,9 +78,10 @@ class CrudWorkshopTest extends TestCase
 
     public function test_categories_edit_displays_form_with_current_data(): void
     {
+        $admin = User::factory()->create(['role' => 'admin']);
         $categorie = Category::factory()->create(['nom' => 'Série', 'slug' => 'serie']);
 
-        $response = $this->get(route('categories.edit', $categorie));
+        $response = $this->actingAs($admin)->get(route('categories.edit', $categorie));
 
         $response->assertStatus(200);
         $response->assertSee('Modifier la catégorie : Série');
@@ -84,9 +90,10 @@ class CrudWorkshopTest extends TestCase
 
     public function test_categories_update_modifies_data_and_redirects(): void
     {
+        $admin = User::factory()->create(['role' => 'admin']);
         $categorie = Category::factory()->create(['nom' => 'Ancien Nom', 'slug' => 'ancien-nom']);
 
-        $response = $this->put(route('categories.update', $categorie), [
+        $response = $this->actingAs($admin)->put(route('categories.update', $categorie), [
             'nom' => 'Nouveau Nom',
             'slug' => 'nouveau-nom',
         ]);
@@ -103,9 +110,10 @@ class CrudWorkshopTest extends TestCase
 
     public function test_categories_destroy_deletes_empty_category(): void
     {
+        $admin = User::factory()->create(['role' => 'admin']);
         $categorie = Category::factory()->create(['nom' => 'À Supprimer', 'slug' => 'a-supprimer']);
 
-        $response = $this->delete(route('categories.destroy', $categorie));
+        $response = $this->actingAs($admin)->delete(route('categories.destroy', $categorie));
 
         $response->assertRedirect(route('categories.index'));
         $response->assertSessionHas('succes', 'Catégorie supprimée avec succès.');
@@ -117,6 +125,7 @@ class CrudWorkshopTest extends TestCase
 
     public function test_categories_destroy_prevents_deletion_if_publications_exist(): void
     {
+        $admin = User::factory()->create(['role' => 'admin']);
         $user = User::factory()->create();
         $categorie = Category::factory()->create(['nom' => 'Non Supprimable', 'slug' => 'non-supprimable']);
         Publication::create([
@@ -126,7 +135,7 @@ class CrudWorkshopTest extends TestCase
             'user_id' => $user->id,
         ]);
 
-        $response = $this->delete(route('categories.destroy', $categorie));
+        $response = $this->actingAs($admin)->delete(route('categories.destroy', $categorie));
 
         $response->assertRedirect(route('categories.index'));
         $response->assertSessionHas('erreur');
@@ -152,7 +161,7 @@ class CrudWorkshopTest extends TestCase
             'user_id' => $user->id,
         ]);
 
-        $response = $this->get(route('contenus.index'));
+        $response = $this->actingAs($user)->get(route('contenus.index'));
 
         $response->assertStatus(200);
         $response->assertSee('Vidéo Découverte');
@@ -161,9 +170,10 @@ class CrudWorkshopTest extends TestCase
 
     public function test_contenus_create_displays_form_with_categories(): void
     {
+        $user = User::factory()->create();
         Category::factory()->create(['nom' => 'Photographie']);
 
-        $response = $this->get(route('contenus.create'));
+        $response = $this->actingAs($user)->get(route('contenus.create'));
 
         $response->assertStatus(200);
         $response->assertSee('Créer une nouvelle publication');
@@ -175,7 +185,7 @@ class CrudWorkshopTest extends TestCase
         $user = User::factory()->create();
         $categorie = Category::factory()->create();
 
-        $response = $this->post(route('contenus.store'), [
+        $response = $this->actingAs($user)->post(route('contenus.store'), [
             'titre' => 'Titre de ma nouvelle publication',
             'contenu' => 'Un texte descriptif pour cette publication multimédia.',
             'categorie_id' => $categorie->id,
@@ -204,7 +214,7 @@ class CrudWorkshopTest extends TestCase
             'user_id' => $user->id,
         ]);
 
-        $response = $this->get(route('contenus.edit', $publication));
+        $response = $this->actingAs($user)->get(route('contenus.edit', $publication));
 
         $response->assertStatus(200);
         $response->assertSee('Modifier la publication');
@@ -223,7 +233,7 @@ class CrudWorkshopTest extends TestCase
             'user_id' => $user->id,
         ]);
 
-        $response = $this->put(route('contenus.update', $publication), [
+        $response = $this->actingAs($user)->put(route('contenus.update', $publication), [
             'titre' => 'Nouveau Titre Pub',
             'contenu' => 'Nouveau contenu mis à jour.',
             'categorie_id' => $categorie2->id,
@@ -250,7 +260,7 @@ class CrudWorkshopTest extends TestCase
             'user_id' => $user->id,
         ]);
 
-        $response = $this->delete(route('contenus.destroy', $publication));
+        $response = $this->actingAs($user)->delete(route('contenus.destroy', $publication));
 
         $response->assertRedirect(route('contenus.index'));
         $response->assertSessionHas('succes', 'Publication supprimée avec succès.');

@@ -5,7 +5,9 @@
 @section('contenu')
     <div class="page-entete">
         <h1>Liste des catégories</h1>
-        <a href="{{ route('categories.create') }}" class="btn btn-primaire">+ Nouvelle catégorie</a>
+        @can('gerer-categories')
+            <a href="{{ route('categories.create') }}" class="btn btn-primaire">+ Nouvelle catégorie</a>
+        @endcan
     </div>
 
     @forelse ($categories as $categorie)
@@ -18,13 +20,16 @@
 
             <div class="carte-actions">
                 <a href="{{ route('categories.show', $categorie) }}" class="btn">Voir</a>
-                <a href="{{ route('categories.edit', $categorie) }}" class="btn btn-secondaire">Modifier</a>
 
-                <form method="POST" action="{{ route('categories.destroy', $categorie) }}" style="display:inline-block;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?');">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger">Supprimer</button>
-                </form>
+                @can('gerer-categories')
+                    <a href="{{ route('categories.edit', $categorie) }}" class="btn btn-secondaire">Modifier</a>
+
+                    <form method="POST" action="{{ route('categories.destroy', $categorie) }}" style="display:inline-block;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger">Supprimer</button>
+                    </form>
+                @endcan
             </div>
         </div>
     @empty

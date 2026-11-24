@@ -5,7 +5,12 @@
 @section('contenu')
     <div class="page-entete">
         <h1>Contenus multimédias</h1>
-        <a href="{{ route('contenus.create') }}" class="btn btn-primaire">+ Nouveau contenu</a>
+        @auth
+            <a href="{{ route('contenus.create') }}" class="btn btn-primaire">+ Nouveau contenu</a>
+        @endauth
+        @guest
+            <a href="{{ route('connexion') }}" class="btn btn-secondaire" title="Connectez-vous pour publier">+ Publier un contenu</a>
+        @endguest
     </div>
 
     @forelse ($publications as $publication)
@@ -24,13 +29,18 @@
 
             <div class="carte-actions">
                 <a href="{{ route('contenus.show', $publication) }}" class="btn">Consulter</a>
-                <a href="{{ route('contenus.edit', $publication) }}" class="btn btn-secondaire">Modifier</a>
 
-                <form method="POST" action="{{ route('contenus.destroy', $publication) }}" style="display:inline-block;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette publication ?');">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger">Supprimer</button>
-                </form>
+                @can('update', $publication)
+                    <a href="{{ route('contenus.edit', $publication) }}" class="btn btn-secondaire">Modifier</a>
+                @endcan
+
+                @can('delete', $publication)
+                    <form method="POST" action="{{ route('contenus.destroy', $publication) }}" style="display:inline-block;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette publication ?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger">Supprimer</button>
+                    </form>
+                @endcan
             </div>
         </x-carte>
     @empty

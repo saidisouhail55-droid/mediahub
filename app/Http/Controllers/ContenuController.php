@@ -6,12 +6,13 @@ use App\Http\Requests\StorePublicationRequest;
 use App\Http\Requests\UpdatePublicationRequest;
 use App\Models\Categorie;
 use App\Models\Publication;
-use App\Models\User;
+use Illuminate\Http\Request;
 
 class ContenuController extends Controller
 {
     /**
      * Afficher la liste paginée des publications avec chargement anticipé (eager loading).
+     * Accès : Public.
      */
     public function index()
     {
@@ -25,6 +26,7 @@ class ContenuController extends Controller
 
     /**
      * Afficher le formulaire de création d'une nouvelle publication.
+     * Accès : Utilisateur connecté (auth).
      */
     public function create()
     {
@@ -35,18 +37,14 @@ class ContenuController extends Controller
 
     /**
      * Enregistrer une nouvelle publication validée dans MySQL.
-     * Protection contre le Mass Assignment : seules les données validées sont utilisées,
-     * et user_id est contrôlé strictement côté serveur.
+     * Accès : Utilisateur connecté (auth).
+     * Sécurité : user_id est systématiquement lié à l'utilisateur connecté via auth()->id().
      */
     public function store(StorePublicationRequest $request)
     {
-        // Récupérer un utilisateur existant dans la base MySQL (démonstration)
-        $user = User::first();
-        $userId = $user ? $user->id : 1;
-
         $publication = Publication::create([
             ...$request->validated(),
-            'user_id' => $userId,
+            'user_id' => auth()->id(),
         ]);
 
         return redirect()
@@ -56,6 +54,7 @@ class ContenuController extends Controller
 
     /**
      * Afficher le détail d'une publication, ses relations et ses commentaires.
+     * Accès : Public.
      */
     public function show(Publication $publication)
     {
@@ -66,9 +65,12 @@ class ContenuController extends Controller
 
     /**
      * Afficher le formulaire de modification d'une publication.
+     * Autorisation : Seul l'auteur propriétaire ou un admin peut modifier.
      */
     public function edit(Publication $publication)
     {
+        $this->authorize('update', $publication);
+
         $categories = Categorie::orderBy('nom')->get();
 
         return view('contenus.edit', compact('publication', 'categories'));
@@ -76,9 +78,12 @@ class ContenuController extends Controller
 
     /**
      * Enregistrer les modifications validées avec UpdatePublicationRequest.
+     * Autorisation : Seul l'auteur propriétaire ou un admin peut modifier.
      */
     public function update(UpdatePublicationRequest $request, Publication $publication)
     {
+        $this->authorize('update', $publication);
+
         $publication->update($request->validated());
 
         return redirect()
@@ -88,9 +93,12 @@ class ContenuController extends Controller
 
     /**
      * Supprimer une publication (suppression logique avec SoftDeletes).
+     * Autorisation : Seul l'auteur propriétaire ou un admin peut supprimer.
      */
     public function destroy(Publication $publication)
     {
+        $this->authorize('delete', $publication);
+
         $publication->delete();
 
         return redirect()

@@ -19,7 +19,9 @@ class ValidationWorkshopTest extends TestCase
 
     public function test_categorie_creation_echoue_si_nom_manquant(): void
     {
-        $response = $this->post(route('categories.store'), [
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $response = $this->actingAs($admin)->post(route('categories.store'), [
             'nom' => '',
             'slug' => 'test-slug',
         ]);
@@ -30,12 +32,15 @@ class ValidationWorkshopTest extends TestCase
 
     public function test_categorie_creation_echoue_si_slug_deja_existant(): void
     {
+        $admin = User::factory()->create(['role' => 'admin']);
         Category::factory()->create(['slug' => 'podcast']);
 
-        $response = $this->from(route('categories.create'))->post(route('categories.store'), [
-            'nom' => 'Nouveau Podcast',
-            'slug' => 'podcast',
-        ]);
+        $response = $this->actingAs($admin)
+            ->from(route('categories.create'))
+            ->post(route('categories.store'), [
+                'nom' => 'Nouveau Podcast',
+                'slug' => 'podcast',
+            ]);
 
         $response->assertRedirect(route('categories.create'));
         $response->assertSessionHasErrors('slug');
@@ -43,9 +48,10 @@ class ValidationWorkshopTest extends TestCase
 
     public function test_categorie_modification_ignore_propre_slug(): void
     {
+        $admin = User::factory()->create(['role' => 'admin']);
         $categorie = Category::factory()->create(['nom' => 'Musique', 'slug' => 'musique']);
 
-        $response = $this->put(route('categories.update', $categorie), [
+        $response = $this->actingAs($admin)->put(route('categories.update', $categorie), [
             'nom' => 'Musique & Audio',
             'slug' => 'musique', // Même slug : doit être accepté grâce à Rule::unique()->ignore()
         ]);
@@ -68,11 +74,13 @@ class ValidationWorkshopTest extends TestCase
         $user = User::factory()->create();
         $categorie = Category::factory()->create();
 
-        $response = $this->from(route('contenus.create'))->post(route('contenus.store'), [
-            'titre' => 'Court', // < 10 caractères
-            'contenu' => 'Voici un contenu suffisamment long pour passer la validation de 20 caractères.',
-            'categorie_id' => $categorie->id,
-        ]);
+        $response = $this->actingAs($user)
+            ->from(route('contenus.create'))
+            ->post(route('contenus.store'), [
+                'titre' => 'Court', // < 10 caractères
+                'contenu' => 'Voici un contenu suffisamment long pour passer la validation de 20 caractères.',
+                'categorie_id' => $categorie->id,
+            ]);
 
         $response->assertRedirect(route('contenus.create'));
         $response->assertSessionHasErrors('titre');
@@ -90,11 +98,13 @@ class ValidationWorkshopTest extends TestCase
             'user_id' => $user->id,
         ]);
 
-        $response = $this->from(route('contenus.create'))->post(route('contenus.store'), [
-            'titre' => 'Titre Déjà Existant Unique', // Titre dupliqué
-            'contenu' => 'Un second contenu descriptif bien rédigé.',
-            'categorie_id' => $categorie->id,
-        ]);
+        $response = $this->actingAs($user)
+            ->from(route('contenus.create'))
+            ->post(route('contenus.store'), [
+                'titre' => 'Titre Déjà Existant Unique', // Titre dupliqué
+                'contenu' => 'Un second contenu descriptif bien rédigé.',
+                'categorie_id' => $categorie->id,
+            ]);
 
         $response->assertRedirect(route('contenus.create'));
         $response->assertSessionHasErrors('titre');
@@ -105,11 +115,13 @@ class ValidationWorkshopTest extends TestCase
         $user = User::factory()->create();
         $categorie = Category::factory()->create();
 
-        $response = $this->from(route('contenus.create'))->post(route('contenus.store'), [
-            'titre' => 'Titre Valide De Plus De 10 Caractères',
-            'contenu' => 'Trop court', // < 20 caractères
-            'categorie_id' => $categorie->id,
-        ]);
+        $response = $this->actingAs($user)
+            ->from(route('contenus.create'))
+            ->post(route('contenus.store'), [
+                'titre' => 'Titre Valide De Plus De 10 Caractères',
+                'contenu' => 'Trop court', // < 20 caractères
+                'categorie_id' => $categorie->id,
+            ]);
 
         $response->assertRedirect(route('contenus.create'));
         $response->assertSessionHasErrors('contenu');
@@ -119,11 +131,13 @@ class ValidationWorkshopTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->from(route('contenus.create'))->post(route('contenus.store'), [
-            'titre' => 'Titre Valide De Plus De 10 Caractères',
-            'contenu' => 'Voici un contenu suffisamment long pour passer la validation de 20 caractères.',
-            'categorie_id' => 99999, // Catégorie inexistante
-        ]);
+        $response = $this->actingAs($user)
+            ->from(route('contenus.create'))
+            ->post(route('contenus.store'), [
+                'titre' => 'Titre Valide De Plus De 10 Caractères',
+                'contenu' => 'Voici un contenu suffisamment long pour passer la validation de 20 caractères.',
+                'categorie_id' => 99999, // Catégorie inexistante
+            ]);
 
         $response->assertRedirect(route('contenus.create'));
         $response->assertSessionHasErrors('categorie_id');
@@ -134,7 +148,7 @@ class ValidationWorkshopTest extends TestCase
         $user = User::factory()->create();
         $categorie = Category::factory()->create();
 
-        $response = $this->post(route('contenus.store'), [
+        $response = $this->actingAs($user)->post(route('contenus.store'), [
             'titre' => 'Superbe Publication Valide',
             'contenu' => 'Voici un contenu descriptif complet avec largement plus de vingt caractères.',
             'categorie_id' => $categorie->id,
@@ -157,7 +171,7 @@ class ValidationWorkshopTest extends TestCase
             'user_id' => $user->id,
         ]);
 
-        $response = $this->put(route('contenus.update', $pub), [
+        $response = $this->actingAs($user)->put(route('contenus.update', $pub), [
             'titre' => 'Titre Intact Lors Modif', // Même titre
             'contenu' => 'Nouveau texte mis à jour avec plus de vingt caractères.',
             'categorie_id' => $categorie->id,
@@ -174,7 +188,7 @@ class ValidationWorkshopTest extends TestCase
         $categorie = Category::factory()->create();
 
         // Envoi d'une tentative d'usurpation avec user_id = $userPirate->id dans la requête
-        $response = $this->post(route('contenus.store'), [
+        $response = $this->actingAs($userVrai)->post(route('contenus.store'), [
             'titre' => 'Publication Anti Mass Assignment',
             'contenu' => 'Contenu rédigé avec rigueur et sécurité pour valider la protection.',
             'categorie_id' => $categorie->id,
