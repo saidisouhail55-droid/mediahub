@@ -4,36 +4,44 @@
 
 @section('contenu')
     <article class="publication-detail">
-        <h1>{{ $publication->titre }}</h1>
+        <div class="page-entete">
+            <h1>{{ $publication->titre }}</h1>
+            <div class="carte-actions">
+                <a href="{{ route('contenus.edit', $publication) }}" class="btn btn-secondaire">Modifier</a>
+                <form method="POST" action="{{ route('contenus.destroy', $publication) }}" style="display:inline-block;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette publication ?');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger">Supprimer</button>
+                </form>
+            </div>
+        </div>
 
-        <p class="meta" style="color: #666; margin-bottom: 15px;">
+        <p class="meta">
             <strong>Catégorie :</strong> {{ $publication->categorie?->nom ?? 'Non catégorisé' }} |
             <strong>Auteur :</strong> {{ $publication->auteur?->name ?? 'Anonyme' }} |
             <strong>Publié le :</strong> {{ $publication->created_at?->format('d/m/Y à H:i') }}
         </p>
 
         @if($publication->tags && $publication->tags->isNotEmpty())
-            <p class="tags" style="margin-bottom: 15px;">
+            <p class="tags">
                 <strong>Tags :</strong>
                 @foreach($publication->tags as $tag)
-                    <span style="display: inline-block; background: #e0e7ff; color: #3730a3; padding: 2px 8px; border-radius: 4px; font-size: 0.85em; margin-right: 5px;">
-                        #{{ $tag->nom }}
-                    </span>
+                    <span class="badge-tag">#{{ $tag->nom }}</span>
                 @endforeach
             </p>
         @endif
 
         @if($publication->image)
-            <div class="publication-image" style="margin-bottom: 20px;">
-                <img src="{{ asset('storage/' . $publication->image) }}" alt="{{ $publication->titre }}" style="max-width: 100%; border-radius: 6px;">
+            <div class="publication-image">
+                <img src="{{ asset('storage/' . $publication->image) }}" alt="{{ $publication->titre }}">
             </div>
         @endif
 
-        <div class="publication-corps" style="line-height: 1.6; font-size: 1.1em; margin-bottom: 30px;">
+        <div class="publication-corps">
             {!! nl2br(e($publication->contenu)) !!}
         </div>
 
-        <p>
+        <p style="margin-top: 25px;">
             <a href="{{ route('contenus.index') }}" class="btn">&larr; Retour à la liste des contenus</a>
         </p>
 
@@ -43,12 +51,12 @@
             <h2>Commentaires ({{ $publication->commentaires->count() }})</h2>
 
             @forelse($publication->commentaires as $commentaire)
-                <div class="commentaire" style="border-left: 3px solid #3b82f6; padding-left: 15px; margin-bottom: 20px;">
-                    <p style="margin: 0; font-size: 0.9em; color: #555;">
+                <div class="commentaire">
+                    <p class="commentaire-auteur">
                         <strong>{{ $commentaire->auteur?->name ?? 'Utilisateur' }}</strong>
-                        <span>— {{ $commentaire->created_at?->diffForHumans() }}</span>
+                        <small>({{ $commentaire->created_at?->diffForHumans() }})</small>
                     </p>
-                    <p style="margin-top: 5px;">{{ $commentaire->contenu }}</p>
+                    <p class="commentaire-texte">{{ $commentaire->contenu }}</p>
                 </div>
             @empty
                 <p>Aucun commentaire pour le moment. Soyez le premier à commenter !</p>

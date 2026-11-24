@@ -6,12 +6,12 @@ use App\Http\Controllers\ContenuController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CategoriesController;
 
-
-Route::get('/categories/{id?}', [CategoriesController::class, 'index'])->name('categories.index') ;
-
 Route::get('/', [PageController::class, 'accueil'])->name('accueil');
 Route::get('/a-propos', [PageController::class, 'aPropos'])->name('a-propos');
-Route::resource('contenus', ContenuController::class);
+
+Route::resource('categories', CategoriesController::class)->parameters(['categories' => 'categorie']);
+Route::resource('contenus', ContenuController::class)->parameters(['contenus' => 'publication']);
+
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/tableau-de-bord', [AdminController::class, 'index'])->name('dashboard');
 });

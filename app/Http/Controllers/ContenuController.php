@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Categorie;
 use App\Models\Publication;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class ContenuController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Afficher la liste paginée des publications avec chargement anticipé (eager loading).
      */
     public function index()
     {
@@ -17,62 +19,81 @@ class ContenuController extends Controller
             ->latest()
             ->paginate(9);
 
-        return view('contenus.index', [
-            'publications' => $publications,
-            'contenus' => $publications,
-        ]);
+        return view('contenus.index', compact('publications'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Afficher le formulaire de création d'une nouvelle publication.
      */
     public function create()
     {
-        //
+        $categories = Categorie::orderBy('nom')->get();
+
+        return view('contenus.create', compact('categories'));
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Enregistrer une nouvelle publication dans MySQL.
      */
     public function store(Request $request)
     {
-        //
-    }
+        // Récupérer un utilisateur existant dans la base MySQL (démonstration)
+        $user = User::first();
+        $userId = $user ? $user->id : 1;
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Publication $contenu)
-    {
-        $contenu->load(['categorie', 'auteur', 'commentaires.auteur', 'tags']);
-
-        return view('contenus.show', [
-            'publication' => $contenu,
-            'contenu' => $contenu,
+        $publication = Publication::create([
+            'titre' => $request->input('titre'),
+            'contenu' => $request->input('contenu'),
+            'categorie_id' => $request->input('categorie_id'),
+            'user_id' => $userId,
         ]);
+
+        return redirect()
+            ->route('contenus.show', $publication)
+            ->with('succes', 'Publication créée avec succès.');
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Afficher le détail d'une publication, ses relations et ses commentaires.
      */
-    public function edit(string $id)
+    public function show(Publication $publication)
     {
-        //
+        $publication->load(['categorie', 'auteur', 'commentaires.auteur', 'tags']);
+
+        return view('contenus.show', compact('publication'));
     }
 
     /**
-     * Update the specified resource in storage.
+     * Afficher le formulaire de modification d'une publication.
      */
-    public function update(Request $request, string $id)
+    public function edit(Publication $publication)
     {
-        //
+        $categories = Categorie::orderBy('nom')->get();
+
+        return view('contenus.edit', compact('publication', 'categories'));
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Enregistrer les modifications apportées à une publication.
      */
-    public function destroy(string $id)
+    public function update(Request $request, Publication $publication)
     {
-        //
+        $publication->update($request->only('titre', 'contenu', 'categorie_id'));
+
+        return redirect()
+            ->route('contenus.show', $publication)
+            ->with('succes', 'Publication mise à jour avec succès.');
+    }
+
+    /**
+     * Supprimer une publication (suppression logique avec SoftDeletes).
+     */
+    public function destroy(Publication $publication)
+    {
+        $publication->delete();
+
+        return redirect()
+            ->route('contenus.index')
+            ->with('succes', 'Publication supprimée avec succès.');
     }
 }
