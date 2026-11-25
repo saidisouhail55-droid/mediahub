@@ -5,7 +5,9 @@ use App\Http\Controllers\Api\PublicationController;
 use App\Models\Category;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/connexion', [AuthController::class, 'connecter'])->name('api.connexion');
+Route::post('/connexion', [AuthController::class, 'connecter'])
+    ->middleware('throttle:login')
+    ->name('api.connexion');
 
 Route::get('/categories', function () {
     return response()->json(

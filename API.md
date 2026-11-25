@@ -1,6 +1,6 @@
 # API REST MediaHub
 
-Base URL locale : `http://mediahub.test/api`
+Base URL : `${APP_URL}/api`. En local avec `php artisan serve`, l'exemple est `http://localhost:8000/api`; avec un VirtualHost Laragon, utiliser son URL locale.
 
 Toutes les réponses sont en JSON. Pour les requêtes protégées, envoyer :
 
@@ -35,7 +35,7 @@ Réponse `200` :
 }
 ```
 
-Erreur `422` : identifiants absents ou invalides.
+Erreur `422` : champs d'authentification absents ou invalides.
 
 Erreur `401` :
 
@@ -44,6 +44,8 @@ Erreur `401` :
   "message": "Identifiants incorrects."
 }
 ```
+
+Erreur `429` : plus de cinq tentatives de connexion par minute pour la même adresse e-mail et la même IP.
 
 ## Publications
 

@@ -61,4 +61,21 @@ class AuthTest extends TestCase
 
         $this->assertGuest();
     }
+
+    public function test_web_and_api_login_attempts_are_rate_limited(): void
+    {
+        $identifiantsIncorrects = [
+            'email' => 'connexion-limitee@mediahub.test',
+            'password' => 'incorrect',
+        ];
+
+        for ($tentative = 0; $tentative < 5; $tentative++) {
+            $this->from(route('connexion'))
+                ->post(route('connexion'), $identifiantsIncorrects)
+                ->assertRedirect(route('connexion'));
+        }
+
+        $this->postJson(route('api.connexion'), $identifiantsIncorrects)
+            ->assertStatus(429);
+    }
 }

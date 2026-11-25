@@ -13,9 +13,9 @@
 
 ## Résultats
 
-- Nombre de tests : 76
+- Nombre de tests : 78
 - Taux de réussite : 100 %
-- Nombre d'assertions : 307
+- Nombre d'assertions : 323
 - Exécution : `php artisan test --compact`
 - Aucun test ne cible SQLite : les tests utilisent exclusivement MySQL.
 
@@ -24,11 +24,22 @@
 - Affichage, création, modification, validation et suppression des catégories.
 - Refus de création de catégorie pour un utilisateur non administrateur.
 - Inscription, connexion réussie et connexion avec identifiants incorrects.
+- Accès au tableau de bord refusé aux visiteurs et auteurs, accepté pour l'admin.
+- Limitation partagée des connexions web/API après cinq tentatives par minute.
 - Création de publication et refus de modification par un autre auteur.
 - Rejet d'un fichier image invalide.
 - Points d'accès API publics et protégés existants.
 - Création du cache des catégories et invalidation après modification.
 - Déclenchement de l'événement `PublicationCreee` et journalisation `Log::info`.
+
+## Sécurité et production
+
+- `.env` est ignoré par Git et n'est pas suivi.
+- Le tableau de bord admin exige maintenant `auth` et le Gate `gerer-categories`.
+- La connexion web et API utilise le limiteur `login` basé sur l'adresse normalisée et l'IP.
+- `composer audit --no-interaction` : aucun avis de vulnérabilité trouvé pour les dépendances installées.
+- `config:cache`, `route:cache`, `view:cache` et `optimize` ont été exécutés avec succès. Les caches générés ont été nettoyés en excluant explicitement `cache`, afin de ne pas vider le cache applicatif MySQL; les manifests de packages ont ensuite été reconstruits.
+- Aucun déploiement réel ni changement de `.env` ou de `APP_KEY` effectué.
 
 ## Optimisation N+1
 

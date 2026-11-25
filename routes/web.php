@@ -1,11 +1,11 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PageController;
-use App\Http\Controllers\ContenuController;
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CategoriesController;
+use App\Http\Controllers\ContenuController;
+use App\Http\Controllers\PageController;
+use Illuminate\Support\Facades\Route;
 
 // Pages publiques institutionnelles
 Route::get('/', [PageController::class, 'accueil'])->name('accueil');
@@ -17,7 +17,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/inscription', [AuthController::class, 'store']);
     Route::get('/connexion', [AuthController::class, 'creerConnexion'])->name('connexion');
     Route::get('/login', [AuthController::class, 'creerConnexion'])->name('login'); // Alias pour le middleware auth de Laravel
-    Route::post('/connexion', [AuthController::class, 'connecter']);
+    Route::post('/connexion', [AuthController::class, 'connecter'])->middleware('throttle:login');
 });
 
 // Déconnexion (réservée aux utilisateurs connectés)
@@ -50,6 +50,6 @@ Route::middleware('auth')->get(
 )->name('contenus.document');
 
 // Espace d'administration
-Route::prefix('admin')->name('admin.')->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'can:gerer-categories'])->group(function () {
     Route::get('/tableau-de-bord', [AdminController::class, 'index'])->name('dashboard');
 });

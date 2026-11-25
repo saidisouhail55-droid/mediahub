@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Category;
-use App\Models\Categorie;
 use App\Models\Publication;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -45,6 +44,22 @@ class AuthAndPolicyWorkshopTest extends TestCase
 
         // 4. Tentative de création de catégorie sans droits : refusé (403 Forbidden)
         $this->get(route('categories.create'))->assertStatus(403);
+    }
+
+    public function test_tableau_de_bord_admin_est_reserve_aux_administrateurs(): void
+    {
+        $this->get(route('admin.dashboard'))->assertRedirect(route('login'));
+
+        $auteur = User::factory()->create(['role' => 'auteur']);
+        $this->actingAs($auteur)
+            ->get(route('admin.dashboard'))
+            ->assertForbidden();
+
+        $admin = User::factory()->create(['role' => 'admin']);
+        $this->actingAs($admin)
+            ->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('Tableau de bord Administrateur');
     }
 
     /* =========================================================
